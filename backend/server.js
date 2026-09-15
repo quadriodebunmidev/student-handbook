@@ -14,7 +14,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
-app.use(cors({ origin: ENV.clientUrl, credentials: true }));
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
