@@ -14,7 +14,12 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
-app.use(cors({credentials: true}));
+app.use(cors({
+  origin: "https://lenspdf.netlify.app",  // 👈 Use your actual frontend URL
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 app.use(cookieParser());
 
