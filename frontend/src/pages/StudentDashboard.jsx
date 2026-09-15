@@ -119,14 +119,14 @@ export default function StudentDashboard() {
       </div>
 
       {/* Your week at a glance. The peach tile is whatever you should do next. */}
-      {data && (
+      {/* {data && (
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile icon={<Library className="h-4 w-4" />} value={data.materials.length} label="Materials in your feed" />
           <StatTile icon={<BookOpenCheck className="h-4 w-4" />} value={`${progress.percentRead}%`} label="Opened so far" />
           <StatTile icon={<FolderKanban className="h-4 w-4" />} value={data.courses.length} label="Courses this semester" />
           <StatTile tone="accent" icon={<Sparkles className="h-4 w-4" />} value={progress.quizReadyCount} label="Quizzes ready to take" />
         </div>
-      )}
+      )}*/}
 
       <div className="mt-4 relative max-w-md">
         <Input
