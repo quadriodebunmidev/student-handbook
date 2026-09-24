@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <title>LectureVault — Your course materials, organized.</title>
+    <title>Study Anchor — Your course materials, organized.</title>
     <meta
       name="description"
       content="Find your course materials, save them for offline study, and practise with auto-generated quizzes."
@@ -15,12 +15,12 @@
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#2d3250" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="application-name" content="LectureVault" />
+    <meta name="application-name" content="Study Anchor" />
 
     <!-- iOS needs its own set of hints; it ignores most of the manifest. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="LectureVault" />
+    <meta name="apple-mobile-web-app-title" content="Study Anchor" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
     <!-- Windows tiles -->
@@ -32,7 +32,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="LectureVault" />
+    <meta property="og:title" content="Study Anchor" />
     <meta property="og:description" content="Your course materials, organized." />
     <meta property="og:image" content="/icons/og-cover.png" />
 
@@ -52,7 +52,7 @@
     <script>
       // Apply the saved theme synchronously to avoid a flash of the wrong one.
       try {
-        var saved = localStorage.getItem("lecturevault-theme");
+        var saved = localStorage.getItem("study-anchor-theme");
         var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         if (saved === "dark" || (!saved && prefersDark)) document.documentElement.classList.add("dark");
       } catch (e) {}
@@ -62,7 +62,7 @@
     <div id="root"></div>
     <noscript>
       <div style="padding:2rem;font-family:system-ui;color:#2d3250">
-        LectureVault needs JavaScript enabled to load your course materials.
+        Study Anchor needs JavaScript enabled to load your course materials.
       </div>
     </noscript>
     <script type="module" src="/src/main.jsx"></script>

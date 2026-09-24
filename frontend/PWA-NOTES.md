@@ -1,4 +1,4 @@
-# LectureVault — PWA + study-app theme
+# Study Anchor — PWA + study-app theme
 
 ## Colour system
 

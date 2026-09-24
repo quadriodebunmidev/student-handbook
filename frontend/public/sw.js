@@ -1,4 +1,4 @@
-/* LectureVault service worker
+/* Study Anchor service worker
  *
  * Deliberately dependency-free: no Workbox, no build-step injection, so it
  * works with the plain Vite setup already in this repo.

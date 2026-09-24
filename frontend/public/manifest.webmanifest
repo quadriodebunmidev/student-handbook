@@ -1,7 +1,7 @@
 {
   "id": "/?source=pwa",
-  "name": "LectureVault — Your course materials, organized.",
-  "short_name": "LectureVault",
+  "name": "Study Anchor — Your course materials, organized.",
+  "short_name": "Study Anchor",
   "description": "Find your course materials, save them for offline study, and practise with auto-generated quizzes.",
   "start_url": "/?source=pwa",
   "scope": "/",
