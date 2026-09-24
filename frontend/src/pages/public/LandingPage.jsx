@@ -86,8 +86,8 @@ export default function LandingPage() {
 
       {/* HERO */}
       <section className="relative overflow-hidden bg-night text-white">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px)", backgroundSize: "100% 34px" }} />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:pb-24 sm:pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-8">
+        <div className="pointer-events-none inset-0 opacity-[0.07]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px)", backgroundSize: "100% 34px" }} />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-5 sm:pb-24 sm:pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-8">
           <div className="max-w-xl">
             <a
               href="https://buyonuma.shop"
@@ -97,17 +97,17 @@ export default function LandingPage() {
             >
               Sponsored by buyonuma.shop
             </a>
-            <h1 className="sa-rise mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl" style={{ animationDelay: "80ms" }}>
+            <h1 className="sa-rise mt-5 font-display text-2xl font-extrabold leading-[1.08] tracking-tight sm:text-3xl lg:text-4xl" style={{ animationDelay: "80ms" }}>
               Every lecture handout for your school, in one place.
             </h1>
-            <p className="sa-rise mt-5 max-w-md text-base leading-relaxed text-slate-300" style={{ animationDelay: "160ms" }}>
+            <p className="sa-rise mt-5 max-w-md text-sm leading-relaxed text-slate-300" style={{ animationDelay: "160ms" }}>
               {APP_CONFIG.name} brings course materials together by department, level and semester. Your own reps upload them, and you study straight from them.
             </p>
             <div className="sa-rise mt-8 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "240ms" }}>
               <Link to="/signup" className="w-full sm:w-auto"><Button variant="accent" size="lg" className="w-full sm:w-auto">Sign up as a student</Button></Link>
               <Link to="/login" className="w-full sm:w-auto"><Button variant="outline" size="lg" className="w-full border-white/30 text-white hover:bg-white/10 sm:w-auto dark:text-white">Log in</Button></Link>
             </div>
-            <p className="sa-rise mt-4 text-sm text-slate-400" style={{ animationDelay: "300ms" }}>
+            <p className="sa-rise mt-4 text-xs text-slate-400" style={{ animationDelay: "300ms" }}>
               Course Rep? <Link to="/rep-signup" className="font-medium text-accent hover:underline">Apply here</Link>
             </p>
           </div>
@@ -122,14 +122,14 @@ export default function LandingPage() {
 
       {/* HOW IT WORKS */}
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16">
-        <h2 className="font-display text-2xl font-bold sm:text-3xl">From sign-up to studying in three steps</h2>
+        <h2 className="font-display text-lg font-bold sm:text-xl">From sign-up to studying in three steps</h2>
         <ol className="mt-8 grid gap-4 md:grid-cols-3">
           {STEPS.map((s, i) => (
             <li key={s.title} className="lv-card flex gap-4 p-5 md:block">
-              <span className="font-display text-4xl font-extrabold leading-none text-accent">{i + 1}</span>
+              <span className="font-display text-3xl font-extrabold leading-none text-accent">{i + 1}</span>
               <div className="md:mt-4">
-                <h3 className="font-display text-lg font-semibold">{s.title}</h3>
-                <p className="mt-1 text-sm lv-meta">{s.text}</p>
+                <h3 className="font-display text-sm font-semibold">{s.title}</h3>
+                <p className="mt-1 text-xs lv-meta">{s.text}</p>
               </div>
             </li>
           ))}
@@ -145,8 +145,8 @@ export default function LandingPage() {
             className="mx-auto w-full max-w-xs lg:max-w-sm"
           />
           <div>
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">Everything you need to study</h2>
-            <p className="mt-3 max-w-md text-sm lv-meta sm:text-base">
+            <h2 className="font-display text-lg font-bold sm:text-xl">Everything you need to study</h2>
+            <p className="mt-3 max-w-md text-xs lv-meta sm:text-sm">
               Each school gets its own courses, levels and Course Reps, so your feed only shows material that's relevant to you.
             </p>
           </div>
@@ -161,8 +161,8 @@ export default function LandingPage() {
                 className={`${span} ${lead ? "rounded-2xl border border-white/10 bg-night p-6 text-white sm:col-span-2 sm:p-8" : "lv-card p-5"}`}
               >
                 <span className={`grid h-10 w-10 place-items-center rounded-xl ${lead ? "bg-accent text-night" : "bg-accent/20 text-primary"}`}><Icon className="h-5 w-5" /></span>
-                <h3 className={`mt-3 font-display font-semibold ${lead ? "text-xl" : ""}`}>{title}</h3>
-                <p className={`mt-1 text-sm ${lead ? "max-w-md text-slate-300" : "lv-meta"}`}>{text}</p>
+                <h3 className={`mt-3 font-display font-semibold ${lead ? "text-base" : "text-sm"}`}>{title}</h3>
+                <p className={`mt-1 text-xs ${lead ? "max-w-md text-slate-300" : "lv-meta"}`}>{text}</p>
               </div>
             );
           })}
@@ -178,7 +178,7 @@ export default function LandingPage() {
             className="h-56 w-full object-cover md:h-full"
           />
           <div className="flex flex-col justify-center gap-4 p-6 sm:p-10">
-            <p className="font-display text-xl font-semibold sm:text-2xl">
+            <p className="font-display text-base font-semibold sm:text-lg">
               Thousands of students already study through {APP_CONFIG.name}. Find your school and join them.
             </p>
             <Link to="/signup" className="w-full sm:w-fit"><Button variant="accent" className="w-full sm:w-auto">Sign up as a student</Button></Link>
@@ -191,8 +191,8 @@ export default function LandingPage() {
         <div className="lv-card grid gap-8 p-6 sm:p-8 lg:grid-cols-2">
           <div>
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/20 text-primary"><UploadCloud className="h-5 w-5" /></span>
-            <h2 className="mt-3 font-display text-2xl font-bold">Don't see your school?</h2>
-            <p className="mt-2 max-w-md text-sm lv-meta">
+            <h2 className="mt-3 font-display text-lg font-bold">Don't see your school?</h2>
+            <p className="mt-2 max-w-md text-xs lv-meta">
               Tell us where you study. You don't need an account to ask. Your school is added straight away, and students and reps can sign up with it while an admin verifies it.
             </p>
           </div>

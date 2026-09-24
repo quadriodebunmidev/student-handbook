@@ -99,7 +99,7 @@ export default function ExploreFeedPage() {
   const setFilter = (k) => (e) => setFilters((f) => ({ ...f, [k]: e.target.value }));
 
   const CourseCard = ({ c }) => (
-    <button onClick={() => navigate(`/course/${c._id}`)} className="lv-card-interactive text-left p-4">
+    <button onClick={() => navigate(`/course/${c._id}`)} className="lv-card-interactive text-left p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-primary">{c.code}</p>
         <div className="flex items-center gap-1.5">
@@ -107,8 +107,8 @@ export default function ExploreFeedPage() {
           {c.feedReason && <Badge tone="slate">{c.feedReason}</Badge>}
         </div>
       </div>
-      <p className="mt-1 font-semibold">{c.title}</p>
-      <p className="mt-2 text-xs lv-meta">
+      <p className="mt-0.5 font-semibold text-sm">{c.title}</p>
+      <p className="mt-1.5 text-xs lv-meta">
         {c.department} · {c.level} Level{c.session && ` · ${c.session}`}
         {typeof c.materialCount === "number" && ` · ${c.materialCount} material${c.materialCount === 1 ? "" : "s"}`}
       </p>
@@ -117,8 +117,8 @@ export default function ExploreFeedPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold">Explore Feed</h1>
-      <p className="mt-1 text-sm lv-meta">
+      <h1 className="text-lg font-bold">Explore Feed</h1>
+      <p className="mt-1 text-xs lv-meta">
         {scope === "mine"
           ? "Browse other departments and levels at your school — read-only, doesn't affect your dashboard."
           : pickedSchool
@@ -143,67 +143,67 @@ export default function ExploreFeedPage() {
           </Field>
           {pickedSchool && (
             <button onClick={clearPickedSchool} className="mt-1.5 text-xs font-medium text-primary">
-              ← Browse all schools
+              ← Browse all
             </button>
           )}
         </div>
       )}
 
       <div className="mt-4 relative max-w-md">
-        <Input icon={<Search className="w-4 h-4" />} placeholder="Search by course code, title or department..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        <Input icon={<Search className="w-3 h-3" />} placeholder="Search by code, title or department..." value={query} onChange={(e) => setQuery(e.target.value)} />
         {query && (
-          <button onClick={() => setQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+          <button onClick={() => setQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <div className="flex flex-col gap-1">
+      <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-col gap-0.5">
           <label htmlFor="filter-department" className="text-xs font-medium lv-meta">Department</label>
-          <Select id="filter-department" value={filters.department} onChange={setFilter("department")}>
+          <Select id="filter-department" value={filters.department} onChange={setFilter("department")} className="text-xs">
             <option>All</option>{departments.map((d) => <option key={d}>{d}</option>)}
           </Select>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <label htmlFor="filter-level" className="text-xs font-medium lv-meta">Level</label>
-          <Select id="filter-level" value={filters.level} onChange={setFilter("level")}>
+          <Select id="filter-level" value={filters.level} onChange={setFilter("level")} className="text-xs">
             <option>All</option>{levels.map((l) => <option key={l}>{l}</option>)}
           </Select>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <label htmlFor="filter-semester" className="text-xs font-medium lv-meta">Semester</label>
-          <Select id="filter-semester" value={filters.semester} onChange={setFilter("semester")}>
+          <Select id="filter-semester" value={filters.semester} onChange={setFilter("semester")} className="text-xs">
             <option>All</option>{SEMESTERS.map((s) => <option key={s}>{s}</option>)}
           </Select>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <label htmlFor="filter-session" className="text-xs font-medium lv-meta">Session</label>
-          <Select id="filter-session" value={filters.session} onChange={setFilter("session")}>
+          <Select id="filter-session" value={filters.session} onChange={setFilter("session")} className="text-xs">
             <option>All</option>{SESSIONS.map((s) => <option key={s}>{s}</option>)}
           </Select>
         </div>
       </div>
 
       {error && !loading && (
-        <div className="mt-6 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger" role="alert">{error}</div>
+        <div className="mt-6 rounded-2xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger" role="alert">{error}</div>
       )}
 
       {loading ? (
         <div className="mt-10 flex flex-col items-center gap-3 text-center">
-          <img src={searchingIllustration} alt="" aria-hidden="true" className="h-50 w-50" />
-          <p className="text-sm lv-meta">Searching for courses…</p>
+          <img src={searchingIllustration} alt="" aria-hidden="true" className="h-32 w-32" />
+          <p className="text-xs lv-meta">Searching for courses…</p>
         </div>
       ) : courses.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 py-6 text-center">
-          <img src={notFoundIllustration} alt="" aria-hidden="true" className="h-58 w-58" />
-          <h3 className="mt-2 font-display text-lg font-semibold text-night dark:text-slate-100">No courses match</h3>
-          <p className="max-w-sm text-sm lv-meta">Try a different keyword or adjust your filters.</p>
+          <img src={notFoundIllustration} alt="" aria-hidden="true" className="h-40 w-40" />
+          <h3 className="mt-2 font-display text-sm font-semibold text-night dark:text-slate-100">No courses match</h3>
+          <p className="max-w-sm text-xs lv-meta">Try a different keyword or adjust your filters.</p>
         </div>
       ) : groups ? (
         <>
           {groups.map((g, i) => (
             <section key={`${g.key}-${i}`} className="mt-8">
-              <h2 className="lv-section-title mb-3">
-                <School className="h-4 w-4" /> {g.school?.name || "Unassigned school"}
+              <h2 className="lv-section-title mb-3 text-sm flex items-center gap-1.5">
+                <School className="h-3.5 w-3.5" /> {g.school?.name || "Unassigned"} 
                 {g.key === idOf(user.schoolId) && <Badge tone="accent">Your school</Badge>}
                 {g.school && !g.school.verified && <Badge tone="amber">Unverified</Badge>}
               </h2>

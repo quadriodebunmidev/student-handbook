@@ -40,8 +40,8 @@ function greeting() {
 function LoadingBooks({ label }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center gap-3 py-12">
-      <img src={booksIllustration} alt="" aria-hidden="true" className="h-48 w-48" />
-      <p className="text-sm lv-meta">{label}</p>
+      <img src={booksIllustration} alt="" aria-hidden="true" className="h-32 w-32" />
+      <p className="text-xs lv-meta">{label}</p>
     </div>
   );
 }
@@ -122,10 +122,10 @@ export default function StudentDashboard() {
       {!isRep && <StudyTipModal />}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-night dark:text-slate-50">
+          <h1 className="font-display text-lg font-bold text-night dark:text-slate-50">
             {greeting()}, {user.name.split(" ")[0]}
           </h1>
-          <p className="mt-1.5 text-sm lv-meta">
+          <p className="mt-1.5 text-xs lv-meta">
             {user.school?.name && `${user.school.name} · `}{user.department}, {user.level} Level, {user.semester}
             {user.session && ` (${user.session})`}
           </p>
@@ -134,31 +134,31 @@ export default function StudentDashboard() {
           <StreakChip days={progress.streakDays} />
           {!isRep && (
             <Button variant="ghost" onClick={() => navigate("/my-uploads")}>
-              <UploadCloud className="h-4 w-4" /> Upload material
+              <UploadCloud className="h-3 w-3" /> Upload
             </Button>
           )}
           <Button variant="outline" disabled={downloadingAll} onClick={handleDownloadAll}>
-            <DownloadCloud className="h-4 w-4" /> {downloadingAll ? "Preparing zip..." : "Download all"}
+            <DownloadCloud className="h-3 w-3" /> {downloadingAll ? "Preparing..." : "Download"}
           </Button>
         </div>
       </div>
 
       <div className="mt-4 relative max-w-md">
         <Input
-          icon={<Search className="w-4 h-4" />}
-          placeholder="Search your courses and materials..."
+          icon={<Search className="w-3 h-3" />}
+          placeholder="Search courses and materials..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {query && (
           <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </button>
         )}
       </div>
 
       {dashError && (
-        <div className="mt-6 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger" role="alert">{dashError}</div>
+        <div className="mt-6 rounded-2xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger" role="alert">{dashError}</div>
       )}
 
       {!dash && !dashError ? (
@@ -166,20 +166,20 @@ export default function StudentDashboard() {
       ) : dash && (
         <>
           <div className="mt-6">
-            <h2 className="lv-section-title mb-3">Your courses</h2>
+            <h2 className="lv-section-title mb-3 text-sm">Your courses</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCourses.map((c) => (
                 <button
                   key={c._id}
                   onClick={() => navigate(`/course/${c._id}`)}
-                  className="lv-card-interactive flex h-full flex-col p-4 text-left"
+                  className="lv-card-interactive flex h-full flex-col p-3 text-left"
                 >
                   <p className="font-display text-xs font-bold tracking-wide text-primary">{c.code}</p>
-                  <p className="mt-1.5 font-display font-semibold leading-snug text-night dark:text-slate-100">{c.title}</p>
+                  <p className="mt-1 font-display font-semibold leading-snug text-sm text-night dark:text-slate-100">{c.title}</p>
                   <div className="flex-1" />
-                  <div className="mt-4 pt-1">
+                  <div className="mt-3 pt-1">
                     <ProgressBar value={progress.courseProgress(c._id)} />
-                    <div className="mt-2 flex items-center justify-between text-xs lv-meta">
+                    <div className="mt-1.5 flex items-center justify-between text-xs lv-meta">
                       <span>{c.semester}{c.session && `, ${c.session}`}</span>
                       <span className="font-medium">{progress.courseProgress(c._id)}% read</span>
                     </div>
@@ -188,8 +188,8 @@ export default function StudentDashboard() {
               ))}
               {filteredCourses.length === 0 && (
                 <EmptyState
-                  icon={<FolderKanban className="w-8 h-8" />}
-                  title={q ? "No courses match your search" : "No courses yet"}
+                  icon={<FolderKanban className="w-6 h-6" />}
+                  title={q ? "No courses match" : "No courses yet"}
                   message={q ? "Try the course code instead." : "Courses for your department, level and session appear here as soon as a rep sets them up."}
                 />
               )}
@@ -198,10 +198,10 @@ export default function StudentDashboard() {
 
           {filteredPrivate.length > 0 && (
             <div className="mt-8">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="lv-section-title"><Lock className="h-4 w-4" /> Just for you</h2>
-                <Button variant="ghost" className="text-primary" onClick={() => navigate("/my-uploads")}>
-                  {dash.privateTotal > filteredPrivate.length ? `See all ${dash.privateTotal}` : "Manage"} <ChevronRight className="w-4 h-4" />
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="lv-section-title text-sm flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Just for you</h2>
+                <Button variant="ghost" className="text-primary text-xs" onClick={() => navigate("/my-uploads")}>
+                  {dash.privateTotal > filteredPrivate.length ? `See all (${dash.privateTotal})` : "Manage"} <ChevronRight className="w-3 h-3" />
                 </Button>
               </div>
               <p className="-mt-1 mb-3 text-xs lv-meta">Your private uploads — only you can see these.</p>
@@ -214,14 +214,14 @@ export default function StudentDashboard() {
           )}
 
           <div className="mt-8 flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="lv-section-title">{sort === "for_you" ? "For you" : "Latest materials"}</h2>
-            <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-auto">
+            <h2 className="lv-section-title text-sm">{sort === "for_you" ? "For you" : "Latest materials"}</h2>
+            <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-auto text-xs">
               {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </Select>
           </div>
 
           {feedError && !loading && (
-            <div className="mt-3 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger" role="alert">{feedError}</div>
+            <div className="mt-3 rounded-2xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger" role="alert">{feedError}</div>
           )}
 
           {loading ? (
@@ -233,8 +233,8 @@ export default function StudentDashboard() {
               ))}
               {materials.length === 0 && !feedError && (
                 <EmptyState
-                  icon={<FileText className="w-8 h-8" />}
-                  title={q ? "No materials match your search" : "No materials yet"}
+                  icon={<FileText className="w-6 h-6" />}
+                  title={q ? "No materials match" : "No materials yet"}
                   message={q ? "Try the course code instead." : "Nothing has been uploaded for your courses yet. Check the explore feed for related material."}
                 />
               )}
@@ -243,8 +243,8 @@ export default function StudentDashboard() {
           )}
 
           <div className="mt-8 flex items-center justify-between">
-            <h2 className="lv-section-title">Explore other departments</h2>
-            <Button variant="ghost" className="text-primary" onClick={() => navigate("/explore")}>Go to Explore Feed <ChevronRight className="w-4 h-4" /></Button>
+            <h2 className="lv-section-title text-sm">Explore other departments</h2>
+            <Button variant="ghost" className="text-primary text-xs" onClick={() => navigate("/explore")}>Go to Explore <ChevronRight className="w-3 h-3" /></Button>
           </div>
         </>
       )}
