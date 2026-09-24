@@ -4,6 +4,11 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    // Multi-tenancy (Stage 1.3). Left optional here on purpose — the
+    // three-deploy migration is: (1) add nullable, (2) run
+    // utils/migrateSchool.js to backfill existing rows, (3) flip to
+    // `required: true` once every row has a value.
+    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: "School", index: true },
     password: { type: String }, // optional — Google users have no password
     googleId: { type: String, default: null },
 

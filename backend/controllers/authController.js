@@ -1,11 +1,14 @@
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.js";
+import School from "../models/School.js";
 import ActivityLog from "../models/ActivityLog.js";
 import { ENV } from "../config/env.js";
 import { isValidEmail, isValidMatric, isValidPassword } from "../utils/validators.js";
 import { isValidSession } from "../utils/sessions.js";
+import { sendPasswordResetEmail } from "../utils/mailer.js";
 
 const googleClient = new OAuth2Client(ENV.googleClientId);
 
@@ -19,7 +22,18 @@ function publicUser(user) {
   return obj;
 }
 
-function sendAuthResponse(res, user, status = 200) {
+// Attaches the user's school (name, level scheme...) so the client can show
+// it and offer a "change school" picker without another round trip.
+async function publicUserWithSchool(user) {
+  const obj = publicUser(user);
+  if (obj.schoolId) {
+    const school = await School.findById(obj.schoolId).select("name city verified levels orgUnitLabel termStructure");
+    if (school) obj.school = school.toObject();
+  }
+  return obj;
+}
+
+async function sendAuthResponse(res, user, status = 200) {
   const token = signToken(user);
   res.cookie("token", token, {
     httpOnly: true,
@@ -27,48 +41,54 @@ function sendAuthResponse(res, user, status = 200) {
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-  res.status(status).json({ token, user: publicUser(user) });
+  res.status(status).json({ token, user: await publicUserWithSchool(user) });
 }
 
 // POST /api/auth/signup  (student self-registration)
 export async function signup(req, res, next) {
   try {
-    const { matricNumber, name, department, level, semester, session, email, password } = req.body;
-    if (!matricNumber || !name || !department || !level || !semester || !session || !email || !password) {
-      return res.status(400).json({ message: "All fields are required." });
+    const { matricNumber, name, department, level, semester, session, email, password, schoolId } = req.body;
+    if (!matricNumber || !name || !department || !level || !semester || !session || !email || !password || !schoolId) {
+      return res.status(400).json({ message: "All fields are required, including your school." });
     }
     if (!isValidEmail(email)) return res.status(400).json({ message: "Enter a valid email." });
     if (!isValidMatric(matricNumber)) return res.status(400).json({ message: "Enter a valid matric number." });
     if (!isValidPassword(password)) return res.status(400).json({ message: "Password must be at least 6 characters." });
     if (!isValidSession(session)) return res.status(400).json({ message: "Enter a valid academic session, e.g. 2025/2026." });
 
+    const school = await School.findById(schoolId);
+    if (!school) return res.status(400).json({ message: "Select a valid school, or request yours first." });
+
     const exists = await User.findOne({ $or: [{ email }, { matricNumber }] });
     if (exists) return res.status(409).json({ message: "An account with that email or matric number already exists." });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({
-      matricNumber, name, department, level, semester, session, email, password: hashed, role: "student",
+      matricNumber, name, department, level, semester, session, email, password: hashed, role: "student", schoolId,
     });
 
-    sendAuthResponse(res, user, 201);
+    await sendAuthResponse(res, user, 201);
   } catch (err) { next(err); }
 }
 
 // POST /api/auth/rep-signup  (course rep application -> pending)
 export async function repSignup(req, res, next) {
   try {
-    const { matricNumber, name, department, repCourses, email, password, repNote, session, repType } = req.body;
-    if (!matricNumber || !name || !department || !email || !password) {
-      return res.status(400).json({ message: "All required fields must be filled." });
+    const { matricNumber, name, department, level, semester, repCourses, email, password, repNote, session, repType, schoolId } = req.body;
+    if (!matricNumber || !name || !department || !level || !semester || !email || !password || !schoolId) {
+      return res.status(400).json({ message: "All required fields must be filled, including your school." });
     }
+    const school = await School.findById(schoolId);
+    if (!school) return res.status(400).json({ message: "Select a valid school, or request yours first." });
+
     const resolvedRepType = repType === "class" ? "class" : "course";
     const exists = await User.findOne({ $or: [{ email }, { matricNumber }] });
     if (exists) return res.status(409).json({ message: "An account with that email or matric number already exists." });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({
-      matricNumber, name, department, repCourses, email, password: hashed, session,
-      role: "rep", repStatus: "pending", repNote, repType: resolvedRepType,
+      matricNumber, name, level, semester, department, repCourses, email, password: hashed, session, schoolId,
+      role: "rep", repStatus: "active", repNote, repType: resolvedRepType,
     });
 
     const label = resolvedRepType === "class" ? "Class Rep" : "Course Rep";
@@ -99,14 +119,14 @@ export async function login(req, res, next) {
       return res.status(403).json({ code: "REP_REJECTED", message: `Application rejected: ${user.rejectionReason || "no reason given"}.` });
     }
 
-    sendAuthResponse(res, user);
+    await sendAuthResponse(res, user);
   } catch (err) { next(err); }
 }
 
 // POST /api/auth/google  { idToken, matricNumber?, department?, level?, semester? }
 export async function googleLogin(req, res, next) {
   try {
-    const { idToken, matricNumber, department, level, semester, session } = req.body;
+    const { idToken, matricNumber, department, level, semester, session, schoolId } = req.body;
     if (!idToken) return res.status(400).json({ message: "Missing Google ID token." });
 
     const ticket = await googleClient.verifyIdToken({ idToken, audience: ENV.googleClientId });
@@ -122,18 +142,21 @@ export async function googleLogin(req, res, next) {
     if (user) {
       if (!user.googleId) { user.googleId = payload.sub; await user.save(); }
       if (user.suspended) return res.status(403).json({ message: "Your account has been suspended. Contact an admin." });
-      return sendAuthResponse(res, user);
+      return await sendAuthResponse(res, user);
     }
 
     // First-time Google sign-in for this email — we don't have a student
     // profile yet. Tell the frontend to collect matric number / department /
     // level / session ONCE; it should never redirect here again afterwards
     // since the branch above will now match on subsequent logins.
-    if (!matricNumber || !department || !level || !session) {
+    if (!matricNumber || !department || !level || !session || !schoolId) {
       return res.status(200).json({ code: "NEEDS_PROFILE", email: payload.email, name: payload.name });
     }
 
     if (!isValidSession(session)) return res.status(400).json({ message: "Enter a valid academic session, e.g. 2025/2026." });
+
+    const school = await School.findById(schoolId);
+    if (!school) return res.status(400).json({ message: "Select a valid school, or request yours first." });
 
     const clash = await User.findOne({ matricNumber });
     if (clash) return res.status(409).json({ message: "An account with that matric number already exists." });
@@ -142,17 +165,19 @@ export async function googleLogin(req, res, next) {
       name: payload.name,
       email: payload.email,
       googleId: payload.sub,
-      matricNumber, department, level, session, semester: semester || "First Semester",
+      matricNumber, department, level, session, schoolId, semester: semester || "First Semester",
       role: "student",
     });
 
-    sendAuthResponse(res, user, 201);
+    await sendAuthResponse(res, user, 201);
   } catch (err) { next(err); }
 }
 
 // GET /api/auth/me
-export async function me(req, res) {
-  res.json({ user: publicUser(req.user) });
+export async function me(req, res, next) {
+  try {
+    res.json({ user: await publicUserWithSchool(req.user) });
+  } catch (err) { next(err); }
 }
 
 // PUT /api/auth/me  — logged-in user edits their own profile details.
@@ -160,7 +185,7 @@ export async function me(req, res) {
 // avoid identity/permission mixups; use the admin tools for those.
 export async function updateProfile(req, res, next) {
   try {
-    const { name, department, level, semester, session, currentPassword, newPassword } = req.body;
+    const { name, department, level, semester, session, schoolId, currentPassword, newPassword } = req.body;
     const user = req.user;
 
     if (session !== undefined && session !== "" && !isValidSession(session)) {
@@ -168,6 +193,27 @@ export async function updateProfile(req, res, next) {
     }
     if (level !== undefined && level !== "" && ![100, 200, 300, 400].includes(Number(level))) {
       return res.status(400).json({ message: "Enter a valid level." });
+    }
+
+    // Students and Reps can move to a different school; only Admins can't
+    // (they aren't tied to one school in the first place). Department and
+    // level must be re-chosen at the same time, since the old ones belong
+    // to the old school's structure.
+    let newSchool = null;
+    if (schoolId && String(schoolId) !== String(user.schoolId || "")) {
+      if (user.role === "admin") {
+        return res.status(403).json({ message: "Admins can't change school from their profile." });
+      }
+      if (!mongoose.isValidObjectId(schoolId)) return res.status(400).json({ message: "Select a valid school." });
+      newSchool = await School.findById(schoolId);
+      if (!newSchool) return res.status(400).json({ message: "Select a valid school, or request yours first." });
+      if (!department || !level) {
+        return res.status(400).json({ message: "Choose your department and level at your new school." });
+      }
+      if (newSchool.levels?.length && !newSchool.levels.includes(String(level))) {
+        return res.status(400).json({ message: "That level isn't offered at the school you selected." });
+      }
+      user.schoolId = newSchool._id;
     }
 
     if (name) user.name = name;
@@ -189,7 +235,8 @@ export async function updateProfile(req, res, next) {
     }
 
     await user.save();
-    res.json({ user: publicUser(user) });
+    if (newSchool) await ActivityLog.create({ action: `${user.name} changed school to ${newSchool.name}`, actor: user._id });
+    res.json({ user: await publicUserWithSchool(user) });
   } catch (err) { next(err); }
 }
 
@@ -210,8 +257,13 @@ export async function forgotPassword(req, res, next) {
       user.passwordResetToken = resetToken;
       user.passwordResetExpires = Date.now() + 60 * 60 * 1000;
       await user.save();
-      // TODO: send resetToken via nodemailer using ENV.email credentials
-      console.log(`Password reset link for ${email}: ${ENV.clientUrl}/reset-password?token=${resetToken}`);
+      try {
+        await sendPasswordResetEmail(email, `${ENV.clientUrl}/reset-password?token=${resetToken}`);
+      } catch (mailErr) {
+        // A failed email shouldn't break the response contract below, which
+        // always returns 200 whether or not the account exists.
+        console.error("Failed to send password reset email:", mailErr.message);
+      }
     }
     res.json({ message: "If that email is registered, a reset link has been sent." });
   } catch (err) { next(err); }

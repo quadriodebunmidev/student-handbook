@@ -1,6 +1,8 @@
 import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 import xlsx from "xlsx";
+import { extractPptxText } from "./extraction/pptxExtractor.js";
+import { extractImageText } from "./extraction/imageExtractor.js";
 
 /**
  * Extracts plain text from an uploaded file buffer so it can be fed to the
@@ -26,8 +28,12 @@ export async function extractText(buffer, fileType) {
       });
       return text.slice(0, 20000);
     }
-    // pptx / images: no lightweight parser wired up yet — return empty and
-    // let the AI service fall back to using the material title/description.
+    if (fileType === "pptx") {
+      return (await extractPptxText(buffer)).slice(0, 20000);
+    }
+    if (fileType === "image") {
+      return (await extractImageText(buffer)).slice(0, 20000);
+    }
     return "";
   } catch (err) {
     console.error("Text extraction failed:", err.message);

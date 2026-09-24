@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const courseSchema = new mongoose.Schema(
   {
     code: { type: String, required: true, uppercase: true, trim: true }, // e.g. CSC101
+    // Multi-tenancy (Stage 1.3) — see the migration note in models/User.js.
+    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: "School", index: true },
     title: { type: String, required: true },
     department: { type: String, required: true },
     level: { type: Number, required: true, enum: [100, 200, 300, 400] },
@@ -13,8 +15,9 @@ const courseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// A course code is unique per academic session (the same code can be
-// re-offered every session), rather than globally unique.
-courseSchema.index({ code: 1, session: 1 }, { unique: true });
+// A course code is unique per academic session PER SCHOOL (the same code
+// can be re-offered every session, and two different schools can each have
+// their own CSC 101 without colliding).
+courseSchema.index({ code: 1, session: 1, schoolId: 1 }, { unique: true });
 
 export default mongoose.model("Course", courseSchema);

@@ -3,12 +3,19 @@ import Material from "../models/Material.js";
 import Course from "../models/Course.js";
 import Report from "../models/Report.js";
 import ActivityLog from "../models/ActivityLog.js";
+import { sendRepDecisionEmail } from "../utils/mailer.js";
+import { paginate } from "../utils/pagination.js";
+import { escapeRegex } from "../utils/regex.js";
 
-// GET /api/admin/reps/pending
+const NO_TEXT = "-extractedText"; // extracted file text is large and never shown in a list
+
+// GET /api/admin/reps/pending?page=&limit=  — oldest application first
 export async function listPendingReps(req, res, next) {
   try {
-    const reps = await User.find({ role: "rep", repStatus: "pending" }).select("-password");
-    res.json({ reps });
+    const { items, pagination } = await paginate(User, { role: "rep", repStatus: "pending" }, req.query, {
+      sort: { createdAt: 1 }, select: "-password -passwordResetToken -passwordResetExpires", defaultLimit: 10, lean: true,
+    });
+    res.json({ reps: items, pagination });
   } catch (err) { next(err); }
 }
 
@@ -18,7 +25,11 @@ export async function approveRep(req, res, next) {
     const rep = await User.findByIdAndUpdate(req.params.id, { repStatus: "active" }, { new: true });
     if (!rep) return res.status(404).json({ message: "Applicant not found." });
     await ActivityLog.create({ action: `Admin approved Course Rep application from ${rep.name}`, actor: req.user._id });
-    // TODO: send approval email via nodemailer
+    try {
+      await sendRepDecisionEmail(rep.email, rep.name, true);
+    } catch (mailErr) {
+      console.error("Failed to send rep approval email:", mailErr.message);
+    }
     res.json({ message: `${rep.name} approved as Course Rep.`, rep });
   } catch (err) { next(err); }
 }
@@ -30,20 +41,25 @@ export async function rejectRep(req, res, next) {
     const rep = await User.findByIdAndUpdate(req.params.id, { repStatus: "rejected", rejectionReason: reason || "Not specified" }, { new: true });
     if (!rep) return res.status(404).json({ message: "Applicant not found." });
     await ActivityLog.create({ action: `Admin rejected Course Rep application from ${rep.name}`, actor: req.user._id });
-    // TODO: send rejection email via nodemailer
+    try {
+      await sendRepDecisionEmail(rep.email, rep.name, false, rep.rejectionReason);
+    } catch (mailErr) {
+      console.error("Failed to send rep rejection email:", mailErr.message);
+    }
     res.json({ message: `${rep.name}'s application rejected.`, rep });
   } catch (err) { next(err); }
 }
 
-// GET /api/admin/users?search=
+// GET /api/admin/users?search=&page=&limit=
 export async function listUsers(req, res, next) {
   try {
-    const { search } = req.query;
-    const filter = search
-      ? { $or: [{ name: new RegExp(search, "i") }, { email: new RegExp(search, "i") }, { matricNumber: new RegExp(search, "i") }] }
-      : {};
-    const users = await User.find(filter).select("-password").sort({ createdAt: -1 });
-    res.json({ users });
+    const search = String(req.query.search || "").trim().slice(0, 80);
+    const rx = search ? new RegExp(escapeRegex(search), "i") : null;
+    const filter = rx ? { $or: [{ name: rx }, { email: rx }, { matricNumber: rx }] } : {};
+    const { items, pagination } = await paginate(User, filter, req.query, {
+      sort: { createdAt: -1 }, select: "-password -passwordResetToken -passwordResetExpires", defaultLimit: 15, lean: true,
+    });
+    res.json({ users: items, pagination });
   } catch (err) { next(err); }
 }
 
@@ -60,11 +76,23 @@ export async function toggleSuspendUser(req, res, next) {
   } catch (err) { next(err); }
 }
 
-// GET /api/admin/materials
+// GET /api/admin/materials/pending?page=&limit=  — every pending student upload, any school
+export async function listPendingMaterials(req, res, next) {
+  try {
+    const { items, pagination } = await paginate(Material, { status: "pending" }, req.query, {
+      select: NO_TEXT, populate: [["uploadedBy", "name email"], ["courseId", "code title schoolId"]], defaultLimit: 10, lean: true,
+    });
+    res.json({ materials: items, pagination });
+  } catch (err) { next(err); }
+}
+
+// GET /api/admin/materials?page=&limit=
 export async function listAllMaterials(req, res, next) {
   try {
-    const materials = await Material.find().populate("uploadedBy", "name").populate("courseId", "code title").sort({ createdAt: -1 });
-    res.json({ materials });
+    const { items, pagination } = await paginate(Material, {}, req.query, {
+      select: NO_TEXT, populate: [["uploadedBy", "name"], ["courseId", "code title"]], defaultLimit: 15, lean: true,
+    });
+    res.json({ materials: items, pagination });
   } catch (err) { next(err); }
 }
 
@@ -78,11 +106,14 @@ export async function removeMaterial(req, res, next) {
   } catch (err) { next(err); }
 }
 
-// GET /api/admin/reports
+// GET /api/admin/reports?status=open|resolved&page=&limit=
 export async function listReports(req, res, next) {
   try {
-    const reports = await Report.find().populate("materialId", "title").populate("reportedBy", "name").sort({ createdAt: -1 });
-    res.json({ reports });
+    const filter = ["open", "resolved"].includes(req.query.status) ? { status: req.query.status } : {};
+    const { items, pagination } = await paginate(Report, filter, req.query, {
+      populate: [["materialId", "title"], ["reportedBy", "name"]], defaultLimit: 15, lean: true,
+    });
+    res.json({ reports: items, pagination });
   } catch (err) { next(err); }
 }
 
@@ -96,35 +127,44 @@ export async function resolveReport(req, res, next) {
   } catch (err) { next(err); }
 }
 
-// GET /api/admin/activity-log
+// GET /api/admin/activity-log?page=&limit=
 export async function getActivityLog(req, res, next) {
   try {
-    const log = await ActivityLog.find().populate("actor", "name").sort({ createdAt: -1 }).limit(100);
-    res.json({ log });
+    const { items, pagination } = await paginate(ActivityLog, {}, req.query, {
+      populate: [["actor", "name"]], defaultLimit: 25, lean: true,
+    });
+    res.json({ log: items, pagination });
   } catch (err) { next(err); }
 }
 
 // GET /api/admin/analytics
+// Counts and the downloads-per-course grouping happen in the database — this
+// used to load every course and every material into memory just to add them
+// up. The department breakdown is only a few dozen rows (one per course), so
+// that join happens in JS rather than with $lookup — keeps this portable to
+// any Mongo-compatible database, not just ones with the full aggregation
+// pipeline, and for a handful of rows it's no slower.
 export async function getPlatformAnalytics(req, res, next) {
   try {
-    const [totalStudents, activeReps, pendingReps, totalMaterials, courses, materials] = await Promise.all([
+    const [totalStudents, activeReps, pendingReps, totalMaterials, totalCourses, downloadsByCourse, courses, top] = await Promise.all([
       User.countDocuments({ role: "student" }),
       User.countDocuments({ role: "rep", repStatus: "active" }),
       User.countDocuments({ role: "rep", repStatus: "pending" }),
       Material.countDocuments(),
-      Course.find(),
-      Material.find().populate("courseId", "department"),
+      Course.countDocuments(),
+      Material.aggregate([{ $group: { _id: "$courseId", downloads: { $sum: "$downloads" } } }]),
+      Course.find().select("department").lean(),
+      Material.find().sort({ downloads: -1 }).limit(5).select("title downloads").lean(),
     ]);
 
+    const departmentByCourse = new Map(courses.map((c) => [String(c._id), c.department]));
     const downloadsByDept = {};
-    materials.forEach((m) => {
-      const dept = m.courseId?.department || "Unknown";
-      downloadsByDept[dept] = (downloadsByDept[dept] || 0) + m.downloads;
-    });
+    for (const row of downloadsByCourse) {
+      const dept = departmentByCourse.get(String(row._id)) || "Unknown";
+      downloadsByDept[dept] = (downloadsByDept[dept] || 0) + row.downloads;
+    }
+    const mostDownloaded = top.map((m) => ({ title: m.title, downloads: m.downloads }));
 
-    const mostDownloaded = [...materials].sort((a, b) => b.downloads - a.downloads).slice(0, 5)
-      .map((m) => ({ title: m.title, downloads: m.downloads }));
-
-    res.json({ totalStudents, activeReps, pendingReps, totalMaterials, totalCourses: courses.length, downloadsByDept, mostDownloaded });
+    res.json({ totalStudents, activeReps, pendingReps, totalMaterials, totalCourses, downloadsByDept, mostDownloaded });
   } catch (err) { next(err); }
 }

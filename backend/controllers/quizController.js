@@ -1,6 +1,9 @@
 import Quiz from "../models/Quiz.js";
 import QuizAttempt from "../models/QuizAttempt.js";
 import Material from "../models/Material.js";
+import { canViewMaterial } from "../utils/materialAccess.js";
+import { paginate } from "../utils/pagination.js";
+import { trackInteraction } from "../utils/interactions.js";
 import { generateQuestionsFromText, generateTheoryQuestionsFromText } from "../utils/aiService.js";
 
 // POST /api/quiz/generate  { materialId, numQuestions, difficulty }
@@ -8,7 +11,7 @@ export async function generateQuiz(req, res, next) {
   try {
     const { materialId, numQuestions = 5, difficulty = "Medium" } = req.body;
     const material = await Material.findById(materialId);
-    if (!material) return res.status(404).json({ message: "Material not found." });
+    if (!material || !canViewMaterial(req.user, material)) return res.status(404).json({ message: "Material not found." });
 
     const questions = await generateQuestionsFromText({
       text: material.extractedText,
@@ -27,6 +30,7 @@ export async function generateQuiz(req, res, next) {
 
     material.quizzesGenerated += 1;
     await material.save();
+    trackInteraction(req.user, material, "quiz");
 
     // Don't leak correct answers to the client before they attempt it
     const safeQuiz = {
@@ -48,7 +52,7 @@ export async function generateTheoryQuiz(req, res, next) {
   try {
     const { materialId, numQuestions = 5, difficulty = "Medium" } = req.body;
     const material = await Material.findById(materialId);
-    if (!material) return res.status(404).json({ message: "Material not found." });
+    if (!material || !canViewMaterial(req.user, material)) return res.status(404).json({ message: "Material not found." });
 
     const questions = await generateTheoryQuestionsFromText({
       text: material.extractedText,
@@ -68,6 +72,7 @@ export async function generateTheoryQuiz(req, res, next) {
 
     material.quizzesGenerated += 1;
     await material.save();
+    trackInteraction(req.user, material, "quiz");
 
     res.status(201).json({
       quiz: {
@@ -117,31 +122,50 @@ export async function submitQuiz(req, res, next) {
   } catch (err) { next(err); }
 }
 
-// GET /api/quiz/attempts/mine
+// GET /api/quiz/attempts/mine?page=&limit=  — newest first
 export async function myAttempts(req, res, next) {
   try {
-    const attempts = await QuizAttempt.find({ studentId: req.user._id })
-      .populate({ path: "quizId", populate: { path: "materialId", select: "title" } })
-      .sort({ createdAt: 1 });
-    res.json({ attempts });
+    const { items, pagination } = await paginate(QuizAttempt, { studentId: req.user._id }, req.query, {
+      sort: { createdAt: -1 },
+      populate: [{ path: "quizId", populate: { path: "materialId", select: "title" } }],
+      defaultLimit: 20,
+    });
+    res.json({ attempts: items, pagination });
   } catch (err) { next(err); }
 }
 
-// GET /api/quiz/analytics/mine  — study analytics for the logged-in student
+// GET /api/quiz/analytics/mine  — study analytics for the logged-in student.
+// Totals and the average are computed over every attempt in the database; the
+// score trend and "weakest topic" look at the most recent 100 so the payload
+// stays small however long someone has been studying.
+const ANALYTICS_WINDOW = 100;
 export async function myAnalytics(req, res, next) {
   try {
-    const attempts = await QuizAttempt.find({ studentId: req.user._id }).populate({ path: "quizId", populate: { path: "materialId", select: "title" } });
-    const totalAttempts = attempts.length;
-    const avgScore = totalAttempts
-      ? Math.round(attempts.reduce((s, a) => s + (a.score / a.total) * 100, 0) / totalAttempts)
-      : 0;
-    const weakest = [...attempts].sort((a, b) => a.score / a.total - b.score / b.total)[0];
+    const studentId = req.user._id;
+    const [totals, recent] = await Promise.all([
+      QuizAttempt.aggregate([
+        { $match: { studentId } },
+        { $group: {
+          _id: null,
+          n: { $sum: 1 },
+          avg: { $avg: { $cond: [{ $gt: ["$total", 0] }, { $multiply: [{ $divide: ["$score", "$total"] }, 100] }, 0] } },
+        } },
+      ]),
+      QuizAttempt.find({ studentId })
+        .sort({ createdAt: -1 }).limit(ANALYTICS_WINDOW)
+        .populate({ path: "quizId", populate: { path: "materialId", select: "title" } })
+        .lean(),
+    ]);
+
+    const attempts = recent.reverse(); // oldest -> newest, for the trend chart
+    const pct = (a) => (a.total ? a.score / a.total : 0);
+    const weakest = [...attempts].sort((a, b) => pct(a) - pct(b))[0];
 
     res.json({
-      totalAttempts,
-      avgScore,
+      totalAttempts: totals[0]?.n || 0,
+      avgScore: Math.round(totals[0]?.avg || 0),
       weakestTopic: weakest ? weakest.quizId?.materialId?.title : null,
-      trend: attempts.map((a) => ({ score: Math.round((a.score / a.total) * 100), date: a.completedAt })),
+      trend: attempts.map((a) => ({ score: Math.round(pct(a) * 100), date: a.completedAt })),
     });
   } catch (err) { next(err); }
 }
