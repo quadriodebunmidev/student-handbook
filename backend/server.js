@@ -26,7 +26,7 @@ if (ENV.nodeEnv === "production") app.set("trust proxy", 1);
 // Multi-tenant CORS (Stage 1.3): a comma-separated allow-list instead of one
 // hardcoded origin, since every school now has its own frontend domain.
 // e.g. ALLOWED_ORIGINS="https://lenspdf.netlify.app,https://another-school.app"
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || ENV.clientUrl).split(",").map((o) => o.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "https://lenspdf.netlify.app").split(",").map((o) => o.trim());
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
