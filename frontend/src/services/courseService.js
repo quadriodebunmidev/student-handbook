@@ -1,13 +1,14 @@
 import api from "./api.js";
 
-export async function listCourses(filters = {}) {
-  const res = await api.get("/courses", { params: filters });
-  return res.data.courses;
+export async function listCourses({ page, limit, ...filters } = {}) {
+  const res = await api.get("/courses", { params: { ...filters, page, limit } });
+  return res.data; // { courses, pagination }
 }
 
-export async function getCourse(id) {
-  const res = await api.get(`/courses/${id}`);
-  return res.data;
+// The course, plus one page of its materials. sort: "date" (default) | "downloads"
+export async function getCourse(id, { sort, page, limit } = {}) {
+  const res = await api.get(`/courses/${id}`, { params: { sort, page, limit } });
+  return res.data; // { course, materials, pagination }
 }
 
 // Class Rep (or admin) adds a course.

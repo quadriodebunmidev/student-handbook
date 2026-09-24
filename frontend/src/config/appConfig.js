@@ -1,7 +1,20 @@
 export const APP_CONFIG = {
-  name: "LectureVault",
-  shortName: "LV",
+  name: "Study Anchor",
+  shortName: "SA",
   tagline: "Your course materials, organized.",
+  // Shown on the public Developers and Privacy pages. Set VITE_SUPPORT_EMAIL
+  // to show a contact address; edit `developers` to change who is credited.
+  supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || "",
+  developers: [{ name: "Quadri Odebunmi", role: "Founder & developer" , photo: "https://i.postimg.cc/pTGFmshb/IMG-20260309-WA0016.jpg",   // file in public/team/
+  email: "quadriportfolio@gmail.com",
+  whatsapp: "2348077128030",
+  github: "quadriodebunmidev",
+  linkedin: "quadri",}],
+  role: "Full-stack developer",
+
+  supportEmail: "quadriportfolio@gmail.com",
+supportWhatsapp: "2348077128030",
+
 };
 
 export const DEPARTMENTS = ["Computer Science", "Mathematics", "Accounting", "Mass Communication"];
@@ -23,3 +36,5 @@ export function getAcademicSessions(count = 6) {
 }
 
 export const SESSIONS = getAcademicSessions();
+
+

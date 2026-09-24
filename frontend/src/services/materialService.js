@@ -5,9 +5,12 @@ export async function getMaterial(id) {
   return res.data.material;
 }
 
+// Stage 2.1 — one request can upload multiple files; returns every created
+// Material plus the count of any that failed and the resulting status
+// (students land in "pending", reps in "approved" — see Stage 2.2).
 export async function uploadMaterial(formData) {
   const res = await api.post("/materials", formData, { headers: { "Content-Type": "multipart/form-data" } });
-  return res.data.material;
+  return res.data; // { materials, failed, status }
 }
 
 // Course Rep edits their own material's title/description.
@@ -45,16 +48,17 @@ export async function triggerFileDownload(fileUrl, fileName) {
   URL.revokeObjectURL(objectUrl);
 }
 
-// Downloads a zip of every material passed in (defaults, server-side, to the
-// student's whole dashboard feed if no ids are given) — powers the
-// "Download all" button on the feed page.
-export async function downloadAllMaterials(ids = []) {
-  const res = await api.post("/materials/download-all", { ids }, { responseType: "blob" });
+// Downloads a zip of every material passed in. `ids` zips exactly those;
+// `courseId` (Stage 2.4) zips that course's approved materials only;
+// neither given defaults, server-side, to the student's whole dashboard
+// feed — powers both the feed-level and the per-course "Download all" button.
+export async function downloadAllMaterials({ ids = [], courseId } = {}) {
+  const res = await api.post("/materials/download-all", { ids, courseId }, { responseType: "blob" });
   const blob = res.data;
   const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = objectUrl;
-  a.download = "lecturevault-materials.zip";
+  a.download = "study-anchor-materials.zip";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -66,19 +70,43 @@ export async function toggleBookmark(id) {
   return res.data.bookmarked;
 }
 
-export async function myMaterials() {
-  const res = await api.get("/materials/mine");
-  return res.data.materials;
+// Course Rep's own uploads. Returns { materials, pagination, stats } —
+// `stats` covers ALL of their uploads, not just this page.
+export async function myMaterials({ page, limit } = {}) {
+  const res = await api.get("/materials/mine", { params: { page, limit } });
+  return res.data;
 }
 
-export async function myBookmarks() {
-  const res = await api.get("/materials/bookmarks/mine");
-  return res.data.materials;
+// Stage 2.2 — a student's own uploads, across every status ("My uploads").
+export async function getMyUploads({ page, limit } = {}) {
+  const res = await api.get("/materials/mine/student", { params: { page, limit } });
+  return res.data; // { materials, pagination }
 }
 
-export async function searchMaterials(q) {
-  const res = await api.get("/materials/search", { params: { q } });
-  return res.data.materials;
+// Stage 2.2 — rep-only pending queue + approve/reject actions.
+export async function getPendingMaterials({ page, limit } = {}) {
+  const res = await api.get("/materials/pending", { params: { page, limit } });
+  return res.data; // { materials, pagination }
+}
+
+export async function approveMaterial(id) {
+  const res = await api.post(`/materials/${id}/approve`);
+  return res.data.material;
+}
+
+export async function rejectMaterial(id, reason) {
+  const res = await api.post(`/materials/${id}/reject`, { reason });
+  return res.data.material;
+}
+
+export async function myBookmarks({ page, limit } = {}) {
+  const res = await api.get("/materials/bookmarks/mine", { params: { page, limit } });
+  return res.data; // { materials, pagination }
+}
+
+export async function searchMaterials(q, { page, limit } = {}) {
+  const res = await api.get("/materials/search", { params: { q, page, limit } });
+  return res.data; // { materials, pagination }
 }
 
 export async function reportMaterial(id, reason) {

@@ -1,5 +1,5 @@
 import React from "react";
-
+import booksIllustration from "../../public/Books.svg";
 // A page turning: three ruled lines filling in sequence. Reads as "reading"
 // rather than as a generic spinner.
 function PageLoader({ className = "" }) {
@@ -20,7 +20,7 @@ export function FullPageLoader({ label = "Loading your materials..." }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
       <div className="flex flex-col items-center gap-3">
-        <PageLoader />
+        <img src={booksIllustration} alt="" aria-hidden="true" className="h-28 w-28" />
         <p className="text-sm lv-meta">{label}</p>
       </div>
     </div>
@@ -29,9 +29,11 @@ export function FullPageLoader({ label = "Loading your materials..." }) {
 
 export function InlineLoader({ label = "Loading..." }) {
   return (
-    <div className="flex items-center justify-center gap-2.5 py-8 text-sm lv-meta">
-      <PageLoader />
-      {label}
+   <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex flex-col items-center gap-3">
+        <img src={booksIllustration} alt="" aria-hidden="true" className="h-28 w-28" />
+        <p className="text-sm lv-meta">{label}</p>
+      </div>
     </div>
   );
 }

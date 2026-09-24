@@ -4,7 +4,7 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem("lecturevault-theme");
+    const saved = localStorage.getItem("study-anchor-theme");
     if (saved) return saved === "dark";
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
@@ -13,7 +13,7 @@ export function ThemeProvider({ children }) {
     const root = document.documentElement;
     if (dark) root.classList.add("dark");
     else root.classList.remove("dark");
-    localStorage.setItem("lecturevault-theme", dark ? "dark" : "light");
+    localStorage.setItem("study-anchor-theme", dark ? "dark" : "light");
     // Match the installed app's status/title bar to the current theme.
     document
       .querySelectorAll('meta[name="theme-color"]')

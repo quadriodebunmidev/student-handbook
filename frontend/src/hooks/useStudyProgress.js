@@ -8,8 +8,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
  * If the API later returns real progress, swap the reads here.
  */
 
-const OPENED_KEY = "lecturevault-opened";
-const STREAK_KEY = "lecturevault-streak";
+const OPENED_KEY = "study-anchor-opened";
+const STREAK_KEY = "study-anchor-streak";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -35,7 +35,7 @@ export function markMaterialOpened(id) {
   const opened = read(OPENED_KEY, {});
   opened[id] = today();
   write(OPENED_KEY, opened);
-  window.dispatchEvent(new Event("lv:progress"));
+  window.dispatchEvent(new Event("sa:progress"));
 }
 
 /** Consecutive days the student has opened the app, counted locally. */
@@ -57,10 +57,10 @@ export function useStudyProgress(materials = []) {
   useEffect(() => {
     setStreak(bumpStreak());
     const sync = () => setOpened(read(OPENED_KEY, {}));
-    window.addEventListener("lv:progress", sync);
+    window.addEventListener("sa:progress", sync);
     window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener("lv:progress", sync);
+      window.removeEventListener("sa:progress", sync);
       window.removeEventListener("storage", sync);
     };
   }, []);

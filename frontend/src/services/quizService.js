@@ -16,9 +16,9 @@ export async function submitQuiz(quizId, answers) {
   return res.data;
 }
 
-export async function myAttempts() {
-  const res = await api.get("/quiz/attempts/mine");
-  return res.data.attempts;
+export async function myAttempts({ page, limit } = {}) {
+  const res = await api.get("/quiz/attempts/mine", { params: { page, limit } });
+  return res.data; // { attempts, pagination }
 }
 
 export async function myAnalytics() {

@@ -8,11 +8,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("lecturevault-token");
+    const token = localStorage.getItem("study-anchor-token");
     if (!token) { setLoading(false); return; }
     fetchMe()
       .then(setUser)
-      .catch(() => localStorage.removeItem("lecturevault-token"))
+      .catch(() => localStorage.removeItem("study-anchor-token"))
       .finally(() => setLoading(false));
   }, []);
 

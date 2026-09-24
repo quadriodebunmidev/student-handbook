@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Download, X, WifiOff, RefreshCw, Share, Plus } from "lucide-react";
 import { applyUpdate, SW_EVENTS } from "../pwa/registerSW.js";
 
-const DISMISS_KEY = "lecturevault-install-dismissed";
+const DISMISS_KEY = "study-anchor-install-dismissed";
 const DISMISS_DAYS = 14;
 
 function dismissedRecently() {
@@ -62,7 +62,7 @@ export function UpdateToast() {
         <span className="rounded-xl bg-accent/15 p-2">
           <RefreshCw className="h-4 w-4 text-accent-fg dark:text-accent" />
         </span>
-        <p className="flex-1 text-sm leading-snug">A new version of LectureVault is ready.</p>
+        <p className="flex-1 text-sm leading-snug">A new version of Study Anchor is ready.</p>
         <button
           onClick={applyUpdate}
           className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg hover:bg-highlight-deep"
@@ -130,7 +130,7 @@ export function InstallPrompt() {
         <div className="flex items-start gap-3 p-4">
           <img src="/icons/icon-64.png" alt="" className="h-11 w-11 shrink-0 rounded-xl" />
           <div className="min-w-0 flex-1">
-            <p className="font-display font-semibold leading-tight">Keep LectureVault on your home screen</p>
+            <p className="font-display font-semibold leading-tight">Keep Study Anchor on your home screen</p>
             {deferred ? (
               <p className="mt-1 text-sm lv-meta">
                 Opens full screen and keeps your materials readable when the network drops.

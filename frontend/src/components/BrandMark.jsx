@@ -1,13 +1,13 @@
 import React from "react";
 
 /**
- * The LectureVault mark: an open book with a peach bookmark ribbon.
+ * The Study Anchor mark: an open book with a peach bookmark ribbon.
  * Matches the installed app icon exactly, so the home-screen tile and the
  * in-app header read as the same product.
  */
 export default function BrandMark({ className = "h-9 w-9", rounded = true }) {
   return (
-    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="LectureVault">
+    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="Study Anchor">
       <rect width="48" height="48" rx={rounded ? 11 : 0} fill="#2d3250" />
       <path d="M9.6 16.6 22.6 19.9 22.6 34.1 9.6 30.8Z" fill="#ffffff" />
       <path d="M38.4 16.6 25.4 19.9 25.4 34.1 38.4 30.8Z" fill="#ffffff" />

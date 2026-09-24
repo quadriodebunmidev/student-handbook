@@ -65,6 +65,9 @@ export default function MaterialCard({ material, onOpen, isBookmarked, foreign }
       <div className="mt-3 flex flex-wrap gap-2">
         <Badge tone="slate">{fileTypeLabel(material.fileType)}</Badge>
         {foreign && <Badge tone="violet">Other department</Badge>}
+        {material.visibility === "private" && <Badge tone="violet">Private</Badge>}
+        {material.status === "pending" && <Badge tone="amber">Awaiting review</Badge>}
+        {material.status === "rejected" && <Badge tone="red">Rejected</Badge>}
         {hasQuiz && (
           <Badge tone="accent">
             <Sparkles className="h-3 w-3" /> Quiz ready

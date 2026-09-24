@@ -2,7 +2,7 @@ import api from "./api.js";
 
 export async function signup(data) {
   const res = await api.post("/auth/signup", data);
-  localStorage.setItem("lecturevault-token", res.data.token);
+  localStorage.setItem("study-anchor-token", res.data.token);
   return res.data.user;
 }
 
@@ -13,13 +13,13 @@ export async function repSignup(data) {
 
 export async function login(identifier, password) {
   const res = await api.post("/auth/login", { identifier, password });
-  localStorage.setItem("lecturevault-token", res.data.token);
+  localStorage.setItem("study-anchor-token", res.data.token);
   return res.data.user;
 }
 
 export async function googleLogin(payload) {
   const res = await api.post("/auth/google", payload);
-  if (res.data.token) localStorage.setItem("lecturevault-token", res.data.token);
+  if (res.data.token) localStorage.setItem("study-anchor-token", res.data.token);
   return res.data;
 }
 
@@ -34,7 +34,7 @@ export async function fetchMe() {
 }
 
 export async function logout() {
-  localStorage.removeItem("lecturevault-token");
+  localStorage.removeItem("study-anchor-token");
   await api.post("/auth/logout").catch(() => {});
 }
 
