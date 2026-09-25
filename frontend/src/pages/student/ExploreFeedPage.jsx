@@ -194,7 +194,7 @@ export default function ExploreFeedPage() {
         </div>
       ) : courses.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 py-6 text-center">
-          <img src={notFoundIllustration} alt="" aria-hidden="true" className="h-40 w-40" />
+          <img src={notFoundIllustration} alt="" aria-hidden="true" className="h-50 w-50" />
           <h3 className="mt-2 font-display text-sm font-semibold text-night dark:text-slate-100">No courses match</h3>
           <p className="max-w-sm text-xs lv-meta">Try a different keyword or adjust your filters.</p>
         </div>

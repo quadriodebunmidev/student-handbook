@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Download, X, WifiOff, RefreshCw, Share, Plus } from "lucide-react";
 import { applyUpdate, SW_EVENTS } from "../pwa/registerSW.js";
 
-const DISMISS_KEY = "study-anchor-install-dismissed";
-const DISMISS_DAYS = 14;
-
-function dismissedRecently() {
-  const at = Number(localStorage.getItem(DISMISS_KEY) || 0);
-  return at > 0 && Date.now() - at < DISMISS_DAYS * 864e5;
-}
+const RESHOW_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 const isStandalone = () =>
   window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
@@ -78,50 +72,73 @@ export function UpdateToast() {
  * Invitation to install. Chrome/Edge/Android get the real prompt via
  * `beforeinstallprompt`; iOS Safari never fires that event, so it gets the
  * Share → Add to Home Screen instructions instead.
+ *
+ * Re-shows itself every RESHOW_INTERVAL_MS as long as the app hasn't been
+ * installed — dismissing only hides it until the next tick, it doesn't
+ * suppress it long-term.
  */
 export function InstallPrompt() {
   const [deferred, setDeferred] = useState(null);
-  const [showIosHint, setShowIosHint] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [iosEligible, setIosEligible] = useState(false);
 
+  // Capture the browser's install event once, and note iOS eligibility.
   useEffect(() => {
-    if (isStandalone() || dismissedRecently()) return;
+    if (isStandalone()) return;
 
     const onBeforeInstall = (e) => {
       e.preventDefault();
       setDeferred(e);
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
-    window.addEventListener("appinstalled", () => {
-      setDeferred(null);
-      setShowIosHint(false);
-      localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    });
 
-    // Give iOS users the hint only after they've stuck around a little.
-    let timer;
-    if (isIos()) timer = setTimeout(() => setShowIosHint(true), 8000);
+    const onInstalled = () => {
+      setDeferred(null);
+      setVisible(false);
+    };
+    window.addEventListener("appinstalled", onInstalled);
+
+    if (isIos()) setIosEligible(true);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-      clearTimeout(timer);
+      window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
 
+  // Drive visibility on a repeating timer: first show after 8s (gives iOS
+  // users time to settle in), then every 10 minutes after that, for as long
+  // as the app is still not installed.
+  useEffect(() => {
+    if (isStandalone()) return;
+    if (!deferred && !iosEligible) return;
+
+    const firstShow = setTimeout(() => setVisible(true), 8000);
+    const interval = setInterval(() => {
+      if (!isStandalone()) setVisible(true);
+    }, RESHOW_INTERVAL_MS);
+
+    return () => {
+      clearTimeout(firstShow);
+      clearInterval(interval);
+    };
+  }, [deferred, iosEligible]);
+
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    setDeferred(null);
-    setShowIosHint(false);
+    setVisible(false);
   }
 
   async function install() {
     if (!deferred) return;
     deferred.prompt();
-    const { outcome } = await deferred.userChoice;
-    if (outcome !== "accepted") localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    setDeferred(null);
+    await deferred.userChoice;
+    // Whatever the outcome, hide for now — the interval brings it back in
+    // 10 minutes if the app still isn't installed. If it WAS installed,
+    // the appinstalled listener above clears deferred/visible for good.
+    setVisible(false);
   }
 
-  if (!deferred && !showIosHint) return null;
+  if (!visible || (!deferred && !iosEligible)) return null;
 
   return (
     <div className="fixed inset-x-4 bottom-24 z-[80] animate-slide-up sm:inset-x-auto sm:right-6 sm:w-[22rem] lg:bottom-6">

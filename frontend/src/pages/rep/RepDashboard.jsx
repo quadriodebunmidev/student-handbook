@@ -39,15 +39,15 @@ function EditMaterialModal({ material, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-semibold">Edit Material</p>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-4 h-4" /></button>
+      <div className="w-full max-w-sm rounded-xl bg-white dark:bg-slate-900 p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-2.5">
+          <p className="text-sm font-semibold">Edit Material</p>
+          <button onClick={onClose} className="rounded-full p-1 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-3.5 h-3.5" /></button>
         </div>
-        <div className="space-y-3">
-          <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Button className="w-full" disabled={saving} onClick={handleSave}>{saving ? "Saving..." : "Save changes"}</Button>
+        <div className="space-y-2.5">
+          <Input className="text-sm" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Textarea className="text-sm" placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Button className="w-full text-sm" disabled={saving} onClick={handleSave}>{saving ? "Saving..." : "Save changes"}</Button>
         </div>
       </div>
     </div>
@@ -95,10 +95,10 @@ export default function RepDashboard() {
   if (isClassRep) {
     return (
       <AppShell sidebarItems={navItems}>
-        <h1 className="text-2xl font-bold">Class Rep Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Add, edit and delete the courses for your department, level and session.</p>
-        <div className="mt-6">
-          <Button onClick={() => navigate("/rep/courses")}><FolderKanban className="w-4 h-4" /> Manage Courses</Button>
+        <h1 className="text-lg font-bold">Class Rep Dashboard</h1>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Add, edit and delete the courses for your department, level and session.</p>
+        <div className="mt-4">
+          <Button className="text-sm" onClick={() => navigate("/rep/courses")}><FolderKanban className="w-3.5 h-3.5" /> Manage Courses</Button>
         </div>
       </AppShell>
     );
@@ -129,35 +129,35 @@ export default function RepDashboard() {
 
   return (
     <AppShell sidebarItems={navItems}>
-      <h1 className="text-2xl font-bold">Course Rep Dashboard</h1>
-      <div className="mt-5 grid sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"><p className="text-xs text-slate-500 dark:text-slate-400">Materials uploaded</p><p className="text-2xl font-bold">{stats.total}</p></div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"><p className="text-xs text-slate-500 dark:text-slate-400">Total downloads</p><p className="text-2xl font-bold">{stats.downloads}</p></div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"><p className="text-xs text-slate-500 dark:text-slate-400">Quizzes generated from your uploads</p><p className="text-2xl font-bold">{stats.quizzes}</p></div>
+      <h1 className="text-lg font-bold">Course Rep Dashboard</h1>
+      <div className="mt-4 grid sm:grid-cols-3 gap-3">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5"><p className="text-[11px] text-slate-500 dark:text-slate-400">Materials uploaded</p><p className="text-lg font-bold">{stats.total}</p></div>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5"><p className="text-[11px] text-slate-500 dark:text-slate-400">Total downloads</p><p className="text-lg font-bold">{stats.downloads}</p></div>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5"><p className="text-[11px] text-slate-500 dark:text-slate-400">Quizzes generated from your uploads</p><p className="text-lg font-bold">{stats.quizzes}</p></div>
       </div>
-      <div className="mt-6 flex items-center justify-between">
-        <h2 className="font-semibold">Your materials</h2>
-        <Button onClick={() => navigate("/rep/upload")}><Plus className="w-4 h-4" /> Upload Material</Button>
+      <div className="mt-5 flex items-center justify-between">
+        <h2 className="text-sm font-semibold">Your materials</h2>
+        <Button className="text-sm" onClick={() => navigate("/rep/upload")}><Plus className="w-3.5 h-3.5" /> Upload Material</Button>
       </div>
-      <div className="mt-4 grid sm:grid-cols-2 gap-4">
+      <div className="mt-3 grid sm:grid-cols-2 gap-3">
         {materials.map((m) => (
-          <div key={m._id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+          <div key={m._id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
             <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold">{m.title}</p>
+              <p className="text-sm font-semibold">{m.title}</p>
               <div className="flex shrink-0 gap-1">
-                <button onClick={() => setEditing(m)} className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit">
-                  <Pencil className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <button onClick={() => setEditing(m)} className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit">
+                  <Pencil className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 </button>
-                <button onClick={() => handleDelete(m)} disabled={deletingId === m._id} className="rounded-lg p-1.5 hover:bg-danger/10 disabled:opacity-50" title="Delete">
-                  <Trash2 className="w-4 h-4 text-danger" />
+                <button onClick={() => handleDelete(m)} disabled={deletingId === m._id} className="rounded-lg p-1 hover:bg-danger/10 disabled:opacity-50" title="Delete">
+                  <Trash2 className="w-3.5 h-3.5 text-danger" />
                 </button>
               </div>
             </div>
-            {m.description && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{m.description}</p>}
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{m.downloads} downloads · {m.quizzesGenerated} quizzes generated</p>
+            {m.description && <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">{m.description}</p>}
+            <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">{m.downloads} downloads · {m.quizzesGenerated} quizzes generated</p>
           </div>
         ))}
-        {materials.length === 0 && <EmptyState icon={<Upload className="w-8 h-8" />} title="No uploads yet" message="Upload your first course material to get started." />}
+        {materials.length === 0 && <EmptyState icon={<Upload className="w-6 h-6" />} title="No uploads yet" message="Upload your first course material to get started." />}
       </div>
       <Pager pagination={pagination} onPageChange={setPage} />
 

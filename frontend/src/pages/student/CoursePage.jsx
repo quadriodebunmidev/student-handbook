@@ -53,32 +53,32 @@ export default function CoursePage() {
 
   return (
     <AppShell>
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm mb-4 text-slate-500 dark:text-slate-400"><ArrowLeft className="w-4 h-4" /> Back</button>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-xs mb-3 text-slate-500 dark:text-slate-400"><ArrowLeft className="w-3.5 h-3.5" /> Back</button>
+      <div className="flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <p className="text-xs font-semibold text-primary">{course.code}</p>
-          <h1 className="text-2xl font-bold">{course.title}</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{course.department} · {course.level} Level · {course.semester}{course.session && ` · ${course.session} Session`}</p>
+          <p className="text-[11px] font-semibold text-primary">{course.code}</p>
+          <h1 className="text-lg font-bold">{course.title}</h1>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{course.department} · {course.level} Level · {course.semester}{course.session && ` · ${course.session} Session`}</p>
         </div>
-        <Button variant="outline" disabled={downloadingAll} onClick={handleDownloadAll}>
-          <DownloadCloud className="w-4 h-4" /> {downloadingAll ? "Preparing zip..." : "Download all"}
+        <Button variant="outline" className="text-sm" disabled={downloadingAll} onClick={handleDownloadAll}>
+          <DownloadCloud className="w-3.5 h-3.5" /> {downloadingAll ? "Preparing zip..." : "Download all"}
         </Button>
       </div>
-      <div className="mt-4 flex justify-end">
-        <Select value={sort} onChange={(e) => setSort(e.target.value)}>
+      <div className="mt-3 flex justify-end">
+        <Select className="text-sm" value={sort} onChange={(e) => setSort(e.target.value)}>
           <option value="date">Sort by date</option>
           <option value="downloads">Sort by most downloaded</option>
         </Select>
       </div>
       {!materials ? (
-        <div className="mt-4 grid sm:grid-cols-2 gap-4"><CardSkeleton count={4} /></div>
+        <div className="mt-3 grid sm:grid-cols-2 gap-3"><CardSkeleton count={4} /></div>
       ) : (
         <>
-          <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <div className="mt-3 grid sm:grid-cols-2 gap-3">
             {materials.map((m) => (
               <MaterialCard key={m._id} material={m} onOpen={() => navigate(`/material/${m._id}`)} />
             ))}
-            {materials.length === 0 && <EmptyState icon={<FileText className="w-8 h-8" />} title="No materials yet" message="Nothing has been uploaded for this course." />}
+            {materials.length === 0 && <EmptyState icon={<FileText className="w-6 h-6" />} title="No materials yet" message="Nothing has been uploaded for this course." />}
           </div>
           <Pager pagination={pagination} onPageChange={setPage} />
         </>
